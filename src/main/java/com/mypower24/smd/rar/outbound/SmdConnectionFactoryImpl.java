@@ -4,8 +4,8 @@
  */
 package com.mypower24.smd.rar.outbound;
 
-import com.mypower24.smd.rar.api.in.SmdConnection;
-import com.mypower24.smd.rar.api.in.SmdConnectionFactory;
+import com.mypower24.smd.rar.api.out.SmdConnection;
+import com.mypower24.smd.rar.api.out.SmdConnectionFactory;
 import java.util.logging.Logger;
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;

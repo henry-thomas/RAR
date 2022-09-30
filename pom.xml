@@ -23,6 +23,11 @@
             <version>${jakartaee}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.mypower24.smd.rar.lib</groupId>
+            <artifactId>smd-rar-lib</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     
      <build>
@@ -61,4 +66,5 @@
             </plugin>
         </plugins>
     </build>
+    <name>jcluster-ra</name>
 </project>

@@ -4,8 +4,8 @@
  */
 package com.mypower24.smd.rar.inbound;
 
-import com.mypower24.smd.rar.api.out.SmdCommand;
-import com.mypower24.smd.rar.api.out.SmdMsgListener;
+import com.mypower24.smd.rar.api.in.SmdCommand;
+import com.mypower24.smd.rar.api.in.SmdMsgListener;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.HashMap;

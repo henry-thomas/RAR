@@ -42,7 +42,9 @@ public class SmdServiceSubscriber implements Work {
         log.info("[DnsServiceSubscriber] release()");
         try {
             listen = false;
-            socket.close();
+            if (socket != null) {
+                socket.close();
+            }
         } catch (IOException ex) {
         }
     }

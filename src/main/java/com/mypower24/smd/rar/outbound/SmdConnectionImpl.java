@@ -4,9 +4,9 @@
  */
 package com.mypower24.smd.rar.outbound;
 
-import com.mypower24.smd.rar.api.in.SmdConnection;
-import com.mypower24.smd.rar.api.in.TestRequest;
-import com.mypower24.smd.rar.api.in.TestResponse;
+import com.mypower24.smd.rar.api.out.SmdConnection;
+import com.mypower24.smd.rar.lib.TestRequest;
+import com.mypower24.smd.rar.lib.TestResponse;
 import java.io.IOException;
 import java.util.logging.Logger;
 import javax.resource.ResourceException;
@@ -44,13 +44,15 @@ public class SmdConnectionImpl implements SmdConnection {
         log.info("[SmdConnectionImpl] send()");
         if (valid) {
             try {
-                String resp = mconnection.sendCommandToServer(req.getReqHeader());
-                return new TestResponse(resp);
+                TestResponse resp = mconnection.sendCommandToServer(req);
+                return resp;
             } catch (IOException e) {
+                mconnection.destroy();
+//                close();
                 throw new IOException(e.getMessage());
             }
         }
-        
+
         throw new Exception("Connection handle is invalid");
     }
 

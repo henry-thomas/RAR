@@ -4,10 +4,13 @@
  */
 package com.mypower24.smd.rar.api.out;
 
+import javax.resource.ResourceException;
+
 /**
  *
  * @author henry
  */
-public interface SmdMsgListener {
-    
+public interface SmdConnectionFactory {
+
+    public SmdConnection getConnection(String host, int port) throws ResourceException;
 }

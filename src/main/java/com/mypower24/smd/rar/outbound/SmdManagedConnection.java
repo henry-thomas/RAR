@@ -4,10 +4,13 @@
  */
 package com.mypower24.smd.rar.outbound;
 
-import com.mypower24.smd.rar.api.in.TestRequest;
+import com.mypower24.smd.rar.lib.TestRequest;
+import com.mypower24.smd.rar.lib.TestResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -35,8 +38,8 @@ public class SmdManagedConnection implements ManagedConnection, Work {
     private SmdConnectionImpl connection;
     private final List<SmdConnectionImpl> createdConnections;
     private final Socket socket;
-    private final PrintWriter out;
-    private final BufferedReader in;
+    private final ObjectOutputStream obOut;
+    private final ObjectInputStream obIn;
     private PrintWriter logwriter;
 
     SmdManagedConnection(String host, String port) throws IOException {
@@ -48,16 +51,19 @@ public class SmdManagedConnection implements ManagedConnection, Work {
         int portnum = Integer.parseInt(port);
         log.info(String.format("Connecting to %s on port %s...", host, port));
         socket = new Socket(host, portnum);
-        out = new PrintWriter(socket.getOutputStream(), true);
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        obOut = new ObjectOutputStream(socket.getOutputStream());
+        obIn = new ObjectInputStream(socket.getInputStream());
 
 //        in.readLine(); in.readLine();
         log.info("Connected!");
     }
 
-    public String sendCommandToServer(String command) throws IOException {
-        out.println(command);
-        return in.readLine();
+    public TestResponse sendCommandToServer(TestRequest command) throws IOException, ClassNotFoundException {
+        obOut.writeObject(command);
+        Object readObject = obIn.readObject();
+        log.log(Level.INFO, "[SmdManagedConnection] getConnection(): {0}", readObject.toString());
+        return (TestResponse) readObject;
+//        return in.readLine();
     }
 
     @Override

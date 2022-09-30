@@ -89,7 +89,9 @@ public class SmdResourceAdapter implements ResourceAdapter {
     public void endpointDeactivation(MessageEndpointFactory endpointFactory, ActivationSpec spec) {
         log.info("[SmdResourceAdapter] endpointDeactivation()");
         /* Stop listening */
-        tSubscriber.release();
+        if (tSubscriber != null) {
+            tSubscriber.release();
+        }
     }
 
     @Override
