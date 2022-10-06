@@ -4,17 +4,14 @@
  */
 package com.mypower24.smd.rar.inbound;
 
-import java.io.BufferedReader;
+import com.mypower24.smd.rar.lib.JcMessage;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
+import java.io.ObjectInputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.json.Json;
-import javax.json.stream.JsonParser;
 import javax.resource.ResourceException;
 import javax.resource.spi.endpoint.MessageEndpoint;
 import javax.resource.spi.work.Work;
@@ -23,30 +20,49 @@ import javax.resource.spi.work.Work;
  *
  * @author henry
  */
-public class SmdServiceSubscriber implements Work {
+public class JcServiceSubscriber implements Work {
 
     private static final Logger log = Logger.getLogger("DnsServiceSubscriber");
-    private MessageEndpoint mdb;
-    private SmdActivationSpec spec;
+    private final MessageEndpoint mdb;
+    private final SmdActivationSpec spec;
     private Socket socket;
-    private volatile boolean listen;
+    private volatile boolean running;
 
-    public SmdServiceSubscriber(MessageEndpoint mdb, SmdActivationSpec spec) {
+    public JcServiceSubscriber(MessageEndpoint mdb, SmdActivationSpec spec) {
         this.mdb = mdb;
         this.spec = spec;
-        listen = true;
+        running = true;
     }
 
     @Override
     public void release() {
         log.info("[DnsServiceSubscriber] release()");
         try {
-            listen = false;
+            running = false;
             if (socket != null) {
                 socket.close();
             }
         } catch (IOException ex) {
         }
+    }
+
+    /* Invoke a method from the MDB */
+    private String callMdb(MessageEndpoint mdb, Method command, JcMessage message)
+            throws ResourceException {
+        String resp;
+        try {
+            log.info("[DnsServiceSubscriber] callMdb()");
+            mdb.beforeDelivery(command);
+            Object ret = command.invoke(mdb, message);
+            resp = (String) ret;
+        } catch (NoSuchMethodException | ResourceException
+                | IllegalAccessException | IllegalArgumentException
+                | InvocationTargetException ex) {
+            log.info(String.format("Invocation error %s", ex.getMessage()));
+            resp = "ERROR Invocation error - " + ex.getMessage();
+        }
+        mdb.afterDelivery();
+        return resp;
     }
 
     /* Invoke a method from the MDB */
@@ -70,41 +86,35 @@ public class SmdServiceSubscriber implements Work {
 
     @Override
     public void run() {
-        BufferedReader in;
-        String jsonLine;
-        String key;
-        JsonParser parser;
+        ObjectInputStream ois;
+        JcMessage jcMessage;
+        String command;
 
         try {
-            /* Connect to the traffic EIS */
+            /* Connect to the JCluster EIS */
             int port = Integer.parseInt(spec.getPort());
             log.info("[DnsServiceSubscriber] Connecting...");
             socket = new Socket("localhost", port);
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            ois = new ObjectInputStream(socket.getInputStream());
             log.info("[DnsServiceSubscriber] Connected");
 
-            while (listen) {
-                jsonLine = in.readLine();
-                parser = Json.createParser(new StringReader(jsonLine));
-                if (parser.hasNext() && parser.next() == JsonParser.Event.START_OBJECT
-                        && parser.hasNext() && parser.next() == JsonParser.Event.KEY_NAME) {
-
-                    key = parser.getString();
-                    /* Does the MDB support this message? */
-                    if (spec.getCommands().containsKey(key)) {
-                        Method mdbMethod = spec.getCommands().get(key);
-                        /* Invoke the method of the MDB */
-                        callMdb(mdb, mdbMethod, jsonLine);
-                    } else {
-                        log.info("[DnsServiceSubscriber] Unknown message");
-                    }
+            while (running) {
+                jcMessage = (JcMessage) ois.readObject();
+                command = jcMessage.getCommand();
+                /* Does the MDB support this message? */
+                if (spec.getCommands().containsKey(command)) {
+                    Method mdbMethod = spec.getCommands().get(command);
+                    /* Invoke the method of the MDB */
+                    callMdb(mdb, mdbMethod, jcMessage);
                 } else {
-                    log.info("[DnsServiceSubscriber] Wrong message format");
+                    log.info("[DnsServiceSubscriber] Unknown message");
                 }
 
             }
         } catch (IOException | ResourceException ex) {
             log.log(Level.INFO, "[DnsServiceSubscriber] Error - {0}", ex.getMessage());
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(JcServiceSubscriber.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

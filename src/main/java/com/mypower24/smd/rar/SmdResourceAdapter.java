@@ -4,7 +4,7 @@
  */
 package com.mypower24.smd.rar;
 
-import com.mypower24.smd.rar.inbound.SmdServiceSubscriber;
+import com.mypower24.smd.rar.inbound.JcServiceSubscriber;
 import com.mypower24.smd.rar.inbound.ObtainEndpointWork;
 import com.mypower24.smd.rar.inbound.SmdActivationSpec;
 import java.util.logging.Logger;
@@ -46,7 +46,9 @@ public class SmdResourceAdapter implements ResourceAdapter {
         log.info("[SmdResourceAdapter] start()");
         /* Get the work manager from the container to submit tasks to
          * be executed in container-managed threads */
+        
         workManager = ctx.getWorkManager();
+        
     }
 
     @Override
@@ -77,8 +79,9 @@ public class SmdResourceAdapter implements ResourceAdapter {
 
         try {
             /* Start the traffic subscriber client in a new thread */
-            tSubscriber = new SmdServiceSubscriber(endpoint, tSpec);
+            tSubscriber = new JcServiceSubscriber(endpoint, tSpec);
             workManager.scheduleWork(tSubscriber);
+//            workManager.scheduleWork(JcBrokerClient.getInstance());
         } catch (WorkException e) {
             log.info("[SmdResourceAdapter] Can't start the subscriber");
             log.info(e.getMessage());
@@ -98,6 +101,10 @@ public class SmdResourceAdapter implements ResourceAdapter {
     public XAResource[] getXAResources(ActivationSpec[] ass) throws ResourceException {
         log.info("[SmdResourceAdapter] getXAResources()");
         return null;
+    }
+
+    public WorkManager getWorkManager() {
+        return workManager;
     }
 
 }

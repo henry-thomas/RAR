@@ -42,14 +42,15 @@ public class ObtainEndpointWork implements Work {
 
     @Override
     public void run() {
-         log.info("[ObtainEndpointWork] run()");
+        log.info("[ObtainEndpointWork] run()");
         try {
             /* Use the endpoint factory passed by the container upon
              * activation to obtain the MDB endpoint */
             endpoint = mef.createEndpoint(null);
             /* Return back to the resource adapter class */
             ra.endpointAvailable(endpoint);
-        } catch (UnavailableException ex ) {
+           
+        } catch (UnavailableException ex) {
             log.info(ex.getMessage());
         }
     }

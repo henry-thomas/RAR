@@ -1,19 +1,17 @@
 package com.mypower24.smd.rar.outbound;
 
-import com.mypower24.smd.rar.outbound.SmdConnectionFactoryImpl;
+import com.mypower24.smd.rar.SmdResourceAdapter;
+import com.mypower24.smd.rar.api.out.JcConnection;
+import com.mypower24.smd.rar.api.out.JcConnectionFactory;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
-import javax.naming.NamingException;
 import javax.naming.Reference;
-import javax.resource.Referenceable;
 import javax.resource.ResourceException;
-import javax.resource.cci.Connection;
-import javax.resource.cci.ConnectionFactory;
 import javax.resource.spi.ConfigProperty;
 import javax.resource.spi.ConnectionDefinition;
 import javax.resource.spi.ConnectionManager;
@@ -38,23 +36,23 @@ import javax.security.auth.Subject;
 
  /* Define classes and interfaces for the EIS physical connection */
 @ConnectionDefinition(
-        connectionFactory = ConnectionFactory.class,
-        connectionFactoryImpl = SmdConnectionFactoryImpl.class,
-        connection = Connection.class,
-        connectionImpl = SmdConnectionImpl.class
+        connectionFactory = JcConnectionFactory.class,
+        connectionFactoryImpl = JcConnectionFactoryImpl.class,
+        connection = JcConnection.class,
+        connectionImpl = JcConnectionImpl.class
 )
-public class SmdManagedConnectionFactory implements ManagedConnectionFactory, ResourceAdapterAssociation, Referenceable, Serializable {
+public class JcManagedConnectionFactory implements ManagedConnectionFactory, ResourceAdapterAssociation {
 
-    private static final Logger log = Logger.getLogger("SmdManagedConnectionFactory");
+    private static final Logger log = Logger.getLogger("JcBrokerManagedConnectionFactory");
     private static final long serialVersionUID = 7918855339952421358L;
     private ResourceAdapter ra;
     private Reference reference;
     private PrintWriter logWriter;
     private String host;
     private String port;
-    private final Map<String, SmdManagedConnection> serverIdManagedConnMap;
+    private final Map<String, JcManagedConnection> serverIdManagedConnMap;
 
-    public SmdManagedConnectionFactory() {
+    public JcManagedConnectionFactory() {
         this.serverIdManagedConnMap = new HashMap<>();
     }
 
@@ -78,23 +76,26 @@ public class SmdManagedConnectionFactory implements ManagedConnectionFactory, Re
 
     @Override
     public Object createConnectionFactory(ConnectionManager cxManager) throws ResourceException {
-        log.info("[SmdManagedConnectionFactory] createConnectionFactory()");
-        return new SmdConnectionFactoryImpl(this, cxManager);
+        log.info("[JcBrokerManagedConnectionFactory] createConnectionFactory()");
+        return new JcConnectionFactoryImpl(this, cxManager);
     }
 
     @Override
     public Object createConnectionFactory() throws ResourceException {
-        log.info("[SmdManagedConnectionFactory] createConnectionFactory()-NM");
+        log.info("[JcBrokerManagedConnectionFactory] createConnectionFactory()-NM");
         /* Non-managed connections not supported */
         return null;
     }
 
     @Override
     public ManagedConnection createManagedConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
-        log.info("[SmdManagedConnectionFactory] createManagedConnection()");
+        log.info("[JcBrokerManagedConnectionFactory] createManagedConnection()");
         try {
-
-            return new SmdManagedConnection(getHost(), getPort());
+            JcManagedConnection jcManagedConnection = new JcManagedConnection(getHost(), getPort(), ra, this);
+            jcManagedConnection.addConnectionEventListener(new JcConnectionEventListener());
+            
+            
+            return jcManagedConnection;
         } catch (IOException e) {
             throw new ResourceException(e.getCause());
         }
@@ -102,14 +103,24 @@ public class SmdManagedConnectionFactory implements ManagedConnectionFactory, Re
 
     @Override
     public ManagedConnection matchManagedConnections(Set connectionSet, Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
-        log.info("[SmdManagedConnectionFactory] matchManagedConnections()");
+//        ManagedConnection result = null;
+//        Iterator it = connectionSet.iterator();
+//        while (result == null && it.hasNext()) {
+//            ManagedConnection mc = (ManagedConnection) it.next();
+//            if (mc instanceof JcManagedConnection) {
+//                result = mc;
+//            }
+//
+//        }
+//        return result;
+        log.info("[JcBrokerManagedConnectionFactory] matchManagedConnections()");
         /* This resource adapter does not use security (Subject) */
-        SmdManagedConnection match = null;
+        JcManagedConnection match = null;
         /* This resource adapter has no additional parameters for connections,
          * so any open connection can be used by an application */
         for (Object mco : connectionSet) {
             if (mco != null) {
-                match = (SmdManagedConnection) mco;
+                match = (JcManagedConnection) mco;
                 log.info("Connection match!");
                 break;
             }
@@ -135,16 +146,6 @@ public class SmdManagedConnectionFactory implements ManagedConnectionFactory, Re
     @Override
     public void setResourceAdapter(ResourceAdapter ra) throws ResourceException {
         this.ra = ra;
-    }
-
-    @Override
-    public void setReference(Reference reference) {
-        this.reference = reference;
-    }
-
-    @Override
-    public Reference getReference() throws NamingException {
-        return reference;
     }
 
 }

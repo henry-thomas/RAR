@@ -8,6 +8,6 @@ package com.mypower24.smd.rar.api.in;
  *
  * @author henry
  */
-public interface SmdMsgListener {
+public interface JcMsgListener {
     
 }

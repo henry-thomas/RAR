@@ -25,7 +25,7 @@
         </dependency>
         <dependency>
             <groupId>com.mypower24.smd.rar.lib</groupId>
-            <artifactId>smd-rar-lib</artifactId>
+            <artifactId>jcluster-lib</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
@@ -53,7 +53,7 @@
                 <artifactId>maven-rar-plugin</artifactId>
                 <version>2.3</version>
                 <configuration>
-                    <finalName>smd-rar</finalName>
+                    <finalName>jcluster-rar</finalName>
                     <rarSourceDirectory>${basedir}/target/classes</rarSourceDirectory>
                 </configuration>
             </plugin>

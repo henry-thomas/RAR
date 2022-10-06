@@ -4,17 +4,16 @@
  */
 package com.mypower24.smd.rar.api.out;
 
-import com.mypower24.smd.rar.lib.TestRequest;
-import com.mypower24.smd.rar.lib.TestResponse;
+import com.mypower24.smd.rar.lib.JcMessage;
 import javax.resource.ResourceException;
 
 /**
  *
  * @author henry
  */
-public interface SmdConnection {
+public interface JcConnection {
 
-    public TestResponse send(TestRequest req) throws Exception;
+    public JcMessage send(JcMessage req) throws Exception;
 
     public void close() throws ResourceException;
 }

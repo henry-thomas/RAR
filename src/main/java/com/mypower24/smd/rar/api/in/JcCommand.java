@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface SmdCommand {
+public @interface JcCommand {
 
     public String name() default "";
 

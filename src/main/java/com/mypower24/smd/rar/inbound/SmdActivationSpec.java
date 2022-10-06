@@ -4,8 +4,6 @@
  */
 package com.mypower24.smd.rar.inbound;
 
-import com.mypower24.smd.rar.api.in.SmdCommand;
-import com.mypower24.smd.rar.api.in.SmdMsgListener;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -17,6 +15,8 @@ import javax.resource.spi.ActivationSpec;
 import javax.resource.spi.ConfigProperty;
 import javax.resource.spi.InvalidPropertyException;
 import javax.resource.spi.ResourceAdapter;
+import com.mypower24.smd.rar.api.in.JcCommand;
+import com.mypower24.smd.rar.api.in.JcMsgListener;
 
 /**
  *
@@ -24,7 +24,7 @@ import javax.resource.spi.ResourceAdapter;
  */
 /* The activation spec used by the MDB to configure the resource adapter */
 @Activation(
-        messageListeners = {SmdMsgListener.class}
+        messageListeners = {JcMsgListener.class}
 )
 public class SmdActivationSpec implements ActivationSpec, Serializable {
 
@@ -63,8 +63,8 @@ public class SmdActivationSpec implements ActivationSpec, Serializable {
     public void findCommandsInMDB() {
         log.info("[SmdActivationSpec] findCommandsInMDB()");
         for (Method method : beanClass.getMethods()) {
-            if (method.isAnnotationPresent(SmdCommand.class)) {
-                SmdCommand tCommand = method.getAnnotation(SmdCommand.class);
+            if (method.isAnnotationPresent(JcCommand.class)) {
+                JcCommand tCommand = method.getAnnotation(JcCommand.class);
                 commands.put(tCommand.name(), method);
             }
         }
