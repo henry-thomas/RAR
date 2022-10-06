@@ -38,12 +38,12 @@ public class JcConnectionEventListener implements ConnectionEventListener {
     @Override
     public void localTransactionCommitted(ConnectionEvent ce) {
         log.log(Level.SEVERE, "localTransactionCommitted()");
-        try {
-            JcManagedConnection conn = (JcManagedConnection) ce.getConnectionHandle();
-            conn.cleanup();
-        } catch (ResourceException ex) {
-            log.log(Level.SEVERE, null, ex);
-        }
+//        try {
+//            JcManagedConnection conn = (JcManagedConnection) ce.getConnectionHandle();
+//            conn.cleanup();
+//        } catch (ResourceException ex) {
+//            log.log(Level.SEVERE, null, ex);
+//        }
     }
 
     @Override

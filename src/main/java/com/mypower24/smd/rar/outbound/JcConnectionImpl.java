@@ -45,7 +45,6 @@ public class JcConnectionImpl implements JcConnection {
 
         if (valid) {
 
-            ((JcLocalTransaction) mconnection.getLocalTransaction()).setIsComplete(false);
             JcMessage resp = mconnection.sendCommandToServer(req);
             ((JcLocalTransaction) mconnection.getLocalTransaction()).setIsComplete(true);
             mconnection.getLocalTransaction().commit();
