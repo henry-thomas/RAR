@@ -17,12 +17,10 @@ public class JcConnectionImpl implements JcConnection {
 
     private static final Logger log = Logger.getLogger("JcConnectionImpl");
     private JcManagedConnection mconnection;
-    private JcManagedConnectionFactory mcf;
     private boolean valid;
 
-    JcConnectionImpl(JcManagedConnection mconnection, JcManagedConnectionFactory mcf) {
+    JcConnectionImpl(JcManagedConnection mconnection) {
         this.mconnection = mconnection;
-        this.mcf = mcf;
         valid = true;
     }
 
@@ -45,7 +43,7 @@ public class JcConnectionImpl implements JcConnection {
 
         if (valid) {
 
-            log.info("[JcConnectionImpl] send()");
+//            log.info("[JcConnectionImpl] send()");
             JcMessage resp = mconnection.sendCommandToServer(req);
             mconnection.closeHandle(this);
             return resp;
@@ -56,7 +54,7 @@ public class JcConnectionImpl implements JcConnection {
 
     @Override
     public void close() throws ResourceException {
-        log.info("[JcConnectionImpl] close()");
+//        log.info("[JcConnectionImpl] close()");
         mconnection = null;
     }
 }

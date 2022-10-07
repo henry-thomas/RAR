@@ -1,12 +1,10 @@
 package com.mypower24.smd.rar.outbound;
 
-import com.mypower24.smd.rar.SmdResourceAdapter;
 import com.mypower24.smd.rar.api.out.JcConnection;
 import com.mypower24.smd.rar.api.out.JcConnectionFactory;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -94,6 +92,7 @@ public class JcManagedConnectionFactory implements ManagedConnectionFactory, Res
             JcManagedConnection jcManagedConnection = new JcManagedConnection(getHost(), getPort(), ra, this);
             jcManagedConnection.addConnectionEventListener(new JcConnectionEventListener());
             
+//            serverIdManagedConnMap.put(host + "-" + port, jcManagedConnection);
             
             return jcManagedConnection;
         } catch (IOException e) {
@@ -103,17 +102,6 @@ public class JcManagedConnectionFactory implements ManagedConnectionFactory, Res
 
     @Override
     public ManagedConnection matchManagedConnections(Set connectionSet, Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
-//        ManagedConnection result = null;
-//        Iterator it = connectionSet.iterator();
-//        while (result == null && it.hasNext()) {
-//            ManagedConnection mc = (ManagedConnection) it.next();
-//            if (mc instanceof JcManagedConnection) {
-//                result = mc;
-//            }
-//
-//        }
-//        return result;
-        log.info("[JcBrokerManagedConnectionFactory] matchManagedConnections()");
         /* This resource adapter does not use security (Subject) */
         JcManagedConnection match = null;
         /* This resource adapter has no additional parameters for connections,
@@ -121,7 +109,7 @@ public class JcManagedConnectionFactory implements ManagedConnectionFactory, Res
         for (Object mco : connectionSet) {
             if (mco != null) {
                 match = (JcManagedConnection) mco;
-                log.info("Connection match!");
+//                log.info("Connection match!");
                 break;
             }
         }

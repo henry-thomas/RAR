@@ -38,7 +38,7 @@ public class JcConnectionFactoryImpl implements JcConnectionFactory {
      * TradeManagedConnectionFactory */
     @Override
     public JcConnection getConnection(String host, int port) throws ResourceException {
-        log.info("[JcConnectionFactoryImpl] getConnection()");
+//        log.info("[JcConnectionFactoryImpl] getConnection()");
 
         mcfactory.setHost(host);
         mcfactory.setPort(String.valueOf(port));

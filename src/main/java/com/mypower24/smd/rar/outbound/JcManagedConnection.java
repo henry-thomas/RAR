@@ -12,6 +12,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,40 +49,86 @@ public class JcManagedConnection implements ManagedConnection {
     private final ObjectInputStream obIn;
     private PrintWriter logwriter;
     private SmdResourceAdapter ra;
-    private List<ConnectionEventListener> listeners;
+    private final List<ConnectionEventListener> listeners;
+    private final String host;
+    private final String port;
 
-    private final Map<Integer, JcMessage> sentMap = new HashMap<>();
-    private final Map<Integer, JcMessage> receiveMap = new HashMap<>();
+    private final Map<Integer, JcMessage> reqRespMap = new HashMap<>();
+    private final Thread readThread;
 
     JcManagedConnection(String host, String port, ResourceAdapter ra, JcManagedConnectionFactory mcf) throws IOException {
         log.info("[JcManagedConnection] Constructor");
-        createdConnections = new HashSet<JcConnectionImpl>();
-        listeners = Collections.synchronizedList(new ArrayList<ConnectionEventListener>(1));
+        createdConnections = new HashSet<>();
+        listeners = Collections.synchronizedList(new ArrayList<>(1));
 
         this.mcf = mcf;
         /* EIS-specific procedure to obtain a new connection */
         int portnum = Integer.parseInt(port);
         log.info(String.format("Connecting to %s on port %s...", host, port));
         socket = new Socket(host, portnum);
-        socket.setSoTimeout(2000);
+//        socket.setSoTimeout(2000);
         obOut = new ObjectOutputStream(socket.getOutputStream());
         obIn = new ObjectInputStream(socket.getInputStream());
         this.ra = (SmdResourceAdapter) ra;
+
+        readThread = new Thread(this::readTask);
+        readThread.setName(JcManagedConnection.class.getSimpleName() + "-readThread");
+        readThread.start();
+
+        this.host = host;
+        this.port = port;
 
 //        in.readLine(); in.readLine();
         log.info("Connected!");
     }
 
-    public JcMessage sendCommandToServer(JcMessage command) throws ResourceException {
+    private void readTask() {
+        while (!socket.isClosed()) {
+            try {
+                Object readObject = obIn.readObject();
+                if (readObject instanceof JcMessage) {
+                    JcMessage response = (JcMessage) readObject;
+                    JcMessage request = reqRespMap.remove(response.getRequestId());
+                    if (request != null) {
+                        synchronized (request) {
+                            request.setResponse(response);
+                            request.notifyAll();
+                        }
+                    }
+                }
+            } catch (IOException ex) {
+                try {
+                    Thread.sleep(500);
+                    destroy();
+                    Logger.getLogger(JcManagedConnection.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (InterruptedException | ResourceException ex1) {
+                    Logger.getLogger(JcManagedConnection.class.getName()).log(Level.SEVERE, null, ex1);
+                }
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(JcManagedConnection.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+    }
+
+    public JcMessage sendCommandToServer(JcMessage request) throws ResourceException {
         try {
-            obOut.writeObject(command);
+            obOut.writeObject(request);
+            reqRespMap.put(request.getRequestId(), request);
 
-            Object readObject = obIn.readObject();
-//            log.log(Level.INFO, "[JcManagedConnection] sendCommandToServer()");
-            return (JcMessage) readObject;
+            synchronized (request) {
+                request.wait(2000);
+            }
 
-        } catch (IOException | ClassNotFoundException ex) {
-//            destroy();
+            if (request.getResponse() == null) {
+                throw new IOException("No response received, timeout");
+            }
+
+            return request.getResponse();
+
+        } catch (IOException ex) {
+            Logger.getLogger(JcManagedConnection.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InterruptedException ex) {
             Logger.getLogger(JcManagedConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
@@ -90,8 +137,8 @@ public class JcManagedConnection implements ManagedConnection {
     @Override
     public Object getConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
         try {
-            log.info("[JcManagedConnection] getConnection()");
-            connection = new JcConnectionImpl(this, mcf);
+            //log.info("[JcManagedConnection] getConnection()");
+            connection = new JcConnectionImpl(this);
             //port and serverId below should be set with activation, used for MDB Activation
             JcLocalTransaction trans = (JcLocalTransaction) getLocalTransaction();
             trans.setIsComplete(false);
@@ -124,7 +171,7 @@ public class JcManagedConnection implements ManagedConnection {
 
     @Override
     public void cleanup() throws ResourceException {
-        log.info("[JcManagedConnection] cleanup()");
+//        log.info("[JcManagedConnection] cleanup()");
         for (JcConnectionImpl con : createdConnections) {
             if (con != null) {
                 con.invalidate();
@@ -178,7 +225,7 @@ public class JcManagedConnection implements ManagedConnection {
 
     @Override
     public LocalTransaction getLocalTransaction() throws ResourceException {
-        log.info("[JcManagedConnection] getLocalTransaction");
+//        log.info("[JcManagedConnection] getLocalTransaction");
         return new JcLocalTransaction(this, connection);
     }
 

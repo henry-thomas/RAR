@@ -27,13 +27,13 @@ public class JcLocalTransaction implements LocalTransaction {
 
     @Override
     public void begin() throws ResourceException {
-        log.info("[JcLocalTransaction] begin()");
+//        log.info("[JcLocalTransaction] begin()");
         isComplete = false;
     }
 
     @Override
     public void commit() throws ResourceException {
-        log.info("[JcLocalTransaction] commit()");
+//        log.info("[JcLocalTransaction] commit()");
 //        if (isComplete) {
 //        mconnection.closeHandle(handle);
 //        }

@@ -20,7 +20,7 @@ public class JcConnectionEventListener implements ConnectionEventListener {
 
     @Override
     public void connectionClosed(ConnectionEvent ce) {
-        log.log(Level.SEVERE, "connectionClosed()");
+//        log.log(Level.SEVERE, "connectionClosed()");
         try {
             JcConnectionImpl conn = (JcConnectionImpl) ce.getConnectionHandle();
             conn.close();
@@ -32,12 +32,12 @@ public class JcConnectionEventListener implements ConnectionEventListener {
 
     @Override
     public void localTransactionStarted(ConnectionEvent ce) {
-        log.log(Level.SEVERE, "localTransactionStarted()");
+//        log.log(Level.SEVERE, "localTransactionStarted()");
     }
 
     @Override
     public void localTransactionCommitted(ConnectionEvent ce) {
-        log.log(Level.SEVERE, "localTransactionCommitted()");
+//        log.log(Level.SEVERE, "localTransactionCommitted()");
 //        try {
 //            JcManagedConnection conn = (JcManagedConnection) ce.getConnectionHandle();
 //            conn.cleanup();
@@ -48,12 +48,12 @@ public class JcConnectionEventListener implements ConnectionEventListener {
 
     @Override
     public void localTransactionRolledback(ConnectionEvent ce) {
-        log.log(Level.SEVERE, "localTransactionRolledback()");
+//        log.log(Level.SEVERE, "localTransactionRolledback()");
     }
 
     @Override
     public void connectionErrorOccurred(ConnectionEvent ce) {
-        log.log(Level.SEVERE, "connectionErrorOccurred()");
+//        log.log(Level.SEVERE, "connectionErrorOccurred()");
     }
 
 }
