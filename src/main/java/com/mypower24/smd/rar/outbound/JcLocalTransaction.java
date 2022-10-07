@@ -17,10 +17,12 @@ public class JcLocalTransaction implements LocalTransaction {
     private static final Logger log = Logger.getLogger("JcLocalTransaction");
 
     private final JcManagedConnection mconnection;
+    private final JcConnectionImpl handle;
     private boolean isComplete = false;
 
-    public JcLocalTransaction(JcManagedConnection mconnection) {
+    public JcLocalTransaction(JcManagedConnection mconnection, JcConnectionImpl handle) {
         this.mconnection = mconnection;
+        this.handle = handle;
     }
 
     @Override
@@ -32,9 +34,9 @@ public class JcLocalTransaction implements LocalTransaction {
     @Override
     public void commit() throws ResourceException {
         log.info("[JcLocalTransaction] commit()");
-        if (isComplete) {
-            mconnection.cleanup();
-        }
+//        if (isComplete) {
+//        mconnection.closeHandle(handle);
+//        }
     }
 
     @Override

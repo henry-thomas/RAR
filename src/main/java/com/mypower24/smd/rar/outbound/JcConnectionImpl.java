@@ -40,24 +40,23 @@ public class JcConnectionImpl implements JcConnection {
     }
 
     @Override
-    public JcMessage send(JcMessage req) throws Exception {
+    public JcMessage send(JcMessage req) throws ResourceException {
 //        log.info("[JcConnectionImpl] send()");
 
         if (valid) {
 
+            log.info("[JcConnectionImpl] send()");
             JcMessage resp = mconnection.sendCommandToServer(req);
-            ((JcLocalTransaction) mconnection.getLocalTransaction()).setIsComplete(true);
-            mconnection.getLocalTransaction().commit();
+            mconnection.closeHandle(this);
             return resp;
         }
 
-        throw new Exception("Connection handle is invalid");
+        throw new ResourceException("Connection handle is invalid");
     }
 
     @Override
     public void close() throws ResourceException {
         log.info("[JcConnectionImpl] close()");
-        mconnection.closeHandle(this);
         mconnection = null;
     }
 }

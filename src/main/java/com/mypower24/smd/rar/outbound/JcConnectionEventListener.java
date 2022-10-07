@@ -22,8 +22,8 @@ public class JcConnectionEventListener implements ConnectionEventListener {
     public void connectionClosed(ConnectionEvent ce) {
         log.log(Level.SEVERE, "connectionClosed()");
         try {
-            JcManagedConnection conn = (JcManagedConnection) ce.getConnectionHandle();
-            conn.cleanup();
+            JcConnectionImpl conn = (JcConnectionImpl) ce.getConnectionHandle();
+            conn.close();
             
         } catch (ResourceException ex) {
             log.log(Level.SEVERE, null, ex);

@@ -95,7 +95,7 @@ public class JcManagedConnection implements ManagedConnection {
             //port and serverId below should be set with activation, used for MDB Activation
             JcLocalTransaction trans = (JcLocalTransaction) getLocalTransaction();
             trans.setIsComplete(false);
-            
+
             JcServerDescriptor jcServerDescriptor = new JcServerDescriptor("RATest-1", socket.getInetAddress().getHostAddress(), String.valueOf(socket.getPort()));
             JcMessage req = new JcMessage();
             req.setCommand("Hello");
@@ -133,6 +133,16 @@ public class JcManagedConnection implements ManagedConnection {
         }
     }
 
+    public void closeHandle(JcConnectionImpl handle) {
+        createdConnections.remove((JcConnectionImpl) handle);
+        ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_CLOSED);
+        event.setConnectionHandle(handle);
+        for (ConnectionEventListener cel : listeners) {
+            cel.connectionClosed(event);
+        }
+
+    }
+
     @Override
     public void associateConnection(Object connection) throws ResourceException {
         log.info("[JcManagedConnection] associateConnection()");
@@ -146,16 +156,6 @@ public class JcManagedConnection implements ManagedConnection {
 
     public void disassociateConnection() {
         this.connection = null;
-    }
-
-    public void closeHandle(JcConnectionImpl handle) {
-        createdConnections.remove((JcConnectionImpl) handle);
-        ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_CLOSED);
-        event.setConnectionHandle(handle);
-        for (ConnectionEventListener cel : listeners) {
-            cel.connectionClosed(event);
-        }
-
     }
 
     @Override
@@ -179,7 +179,7 @@ public class JcManagedConnection implements ManagedConnection {
     @Override
     public LocalTransaction getLocalTransaction() throws ResourceException {
         log.info("[JcManagedConnection] getLocalTransaction");
-        return new JcLocalTransaction(this);
+        return new JcLocalTransaction(this, connection);
     }
 
     @Override
